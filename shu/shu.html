@@ -1,0 +1,81 @@
+<body>
+    <canvas id="canvas"></canvas>
+    <button class="btn" onClick="draw()">画树</button>
+  
+    <script>
+      var canvas = document.getElementById('canvas');
+      var ctx = canvas.getContext('2d');
+      var startX = window.innerWidth * 0.5;
+      var startY = window.innerHeight;
+  
+      function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.fillStyle = 'rgb(255,255,255)';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY * 0.9);
+        ctx.lineTo(startX, startY * 0.7);
+        ctx.closePath();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+      }
+  
+      function nextStep(parentLength, lineWidth, color, parentEndX, parentEndY, k, baseAngle, angle) {
+        if (parentLength <= 1) {
+          return 0;
+        }
+        var leftAngle = angle + baseAngle;
+        var rightAngle = baseAngle - angle;
+        //根据传来的角度，算出左枝和右枝需要偏移的量
+        var LdisX = k * parentLength * Math.round(Math.cos(leftAngle / 180 * Math.PI) * 10) / 10;
+        var LdisY = k * parentLength * Math.round(Math.sin(leftAngle / 180 * Math.PI) * 10) / 10;
+        var RdisX = k * parentLength * Math.round(Math.cos(rightAngle / 180 * Math.PI) * 10) / 10;
+        var RdisY = k * parentLength * Math.round(Math.sin(rightAngle / 180 * Math.PI) * 10) / 10;
+        //算出左枝和右枝终点坐标的值
+        var LXbough = parentEndX + LdisX;
+        var LYbough = parentEndY - LdisY;
+        var RXbough = parentEndX + RdisX;
+        var RYbough = parentEndY - RdisY;
+        //开始绘画
+        ctx.beginPath();
+        ctx.moveTo(parentEndX, parentEndY);
+        ctx.lineTo(LXbough, LYbough);
+        ctx.moveTo(parentEndX, parentEndY);
+        ctx.lineTo(RXbough, RYbough);
+        ctx.closePath();
+        //当树枝长度到一定值时，树枝的颜色逐渐变浅
+        var rgb = '#f' + color + "" + color;
+        if (parentLength < 20) {
+          ctx.strokeStyle = rgb;
+          switch (color) {
+            case 1: color = 4; break;
+            case 4: color = 7; break;
+            case 7: color = 'a'; break;
+            case 'a': color = 'c'; break;
+            case 'c': color = 'e'; break;
+            default: color = 'e'; break;
+          }
+        } else {
+          ctx.strokeStyle = 'black';
+        }
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+  
+        //树枝下个分支点的角度 值越大，伞盖越大，常数为了防止树枝分叉角度太小重叠
+        var newAngle = Math.random() * 30 + 10;
+        //画左枝和右枝
+        nextStep(parentLength * k, lineWidth * 0.6, color, LXbough, LYbough, k, leftAngle, newAngle);
+        nextStep(parentLength * k, lineWidth * 0.6, color, RXbough, RYbough, k, rightAngle, newAngle);
+      }
+  
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        init();
+        nextStep(startY * 0.3, 6, 4, startX, startY * 0.7, 0.7, 90, Math.random() * 30 + 10);
+      }
+  
+      init();
+  
+    </script>
+  </body>
